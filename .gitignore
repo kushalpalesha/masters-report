@@ -6,4 +6,6 @@
 *.pdf
 *.toc
 *.gz
+*.blg
+*.bbl
 .DS_Store
