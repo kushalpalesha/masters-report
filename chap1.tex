@@ -11,27 +11,131 @@ that another browser may prevent the same form of attack. Moreover, the flexibil
 that client side Javascript provides to manipulate the Document Object Model (DOM)
 makes it challenging to secure content on the browser.
 
-In this paper, we propose the introduction of Policy agnostic programming (PAP)
+In this paper, we propose the introduction of policy-agnostic programming (PAP)
 into Javascript to help protect sensitive data on the client side. PAP is a
-programming paradigm introduced by Yang et al in ~\cite{Jeeves} that builds on
+programming paradigm introduced by Yang et al~\cite{Jeeves} that builds on
 research efforts in language based information flow security. In their paper,
-Yang et al introduced Jeeves, a language to write policy agnostic programs. The
+Yang et al introduced Jeeves, a language to write policy-agnostic programs. The
 PAP paradigm aims to make the implementation of information flow controls in complex
-real world systems flexible and intuitive. In ~\cite{Jacqueline}, Yang et al
-presented how policy agnostic programming can be used to protect data on a database
-backed server. They introduced an MVC framework called Jacqueline which extends
-the Django framework with Jeeves for policy agnostic evaluation. Similarly we will
-extend Javascript to support PAP and demonstrate how it can help prevent sensitive
-data leaks on the browser.
+real world systems flexible and intuitive. Yang et al~\cite{Jacqueline} presented
+how PAP can be used to protect data on a database backed server. They introduced
+an MVC framework called Jacqueline which extends the Django framework with Jeeves
+for policy-agnostic evaluation. Similarly we will extend Javascript to support PAP
+and demonstrate how it can help prevent sensitive data leaks on the browser.
 
 In the rest of this chapter we show a survey of the current state of browser security,
 proposals to protect against various client-side attacks and where our solution
 would fit into the client side architecture. In Chapter~\ref{chap:PAP} we give a brief background
-about information flow security, policy agnostic programming, jeeves and related
+about information flow security, policy-agnostic programming, Jeeves, and related
 concepts. In Chapter~\ref{chap:solution} we give a brief about how our solution would work. In the
 subsequent chapters we talk about our results, related work, limitations and future
 work. In the final chapter we go into details about of our implementation.
 
 \section{Efforts to secure browser content}
-\textbf{Not much content for this section yet. For now this should suffice:}
-\textit{The browser is insecure and it is difficult to protect sensitive data.}
+Ever since the first web browser was introduced~\cite{nexus} in 1990, the kind of
+content rendered has evolved dramatically. First it was only static html pages that
+that were acquired from web servers. The introduction of the Common Gateway
+Interface (CGI) in 1993~\cite{cgi}, added the capability of generating dynamic
+web pages based on client requests made by the web browser. "Dynamic" here was
+pages that were created by web servers based on user requests and hence served
+personalized content that may include sensitive data. This meant there was content
+worth protecting but even then most of the security measures were focused
+on the server-side (where all the data resided) since that was where attackers
+also focused their attention. With the introduction of Javascript in 1995~\cite{js10days}
+web browsers became really powerful since it enabled web developers to create web
+pages with client-side interactivity without the need to make requests to a web server.
+% and ``with great power comes great responsibility'' should have been the motto
+% back then with regards to security but Spiderman was not out at the time
+
+With further iterations of Javascript and technologies around it, web pages have
+now evolved into web applications giving great control over sensitive user data to the
+client side. The flexibility of Javascript that makes it possible to develop sophisticated
+web applications also makes content rendered by web browsers vulnerable to attacks.
+Over the years browser vendors have come up with various security measures to
+protect browser content.
+
+\subsection{Common security measures found in most modern browsers}
+Flanagan~\cite[Section~13.6]{flanagan2011javascript}
+talks about browser security in brief and states two competing goals that browser vendors have tried
+to balance: ``Defining powerful client-side APIs to enable useful web applications.''
+and ``Preventing malicious code from reading or altering your data, compromising
+your privacy, scamming you, or wasting your time.'' Flanagan~\cite[Section~13.6.1]{flanagan2011javascript}
+lists some of the common security restrictions imposed on Javascript and notes
+that ``Different browsers have different security policies and may implement
+different API restrictions.''.
+
+\subsubsection{Same origin policy}
+
+\begin{quotation}
+  ``The same-origin policy restricts how a document or script loaded from one origin
+  can interact with a resource from another origin. It is a critical security mechanism
+  for isolating potentially malicious documents.''~\cite{sameOrigin}
+\end{quotation}
+The article~\cite{sameOrigin} gives details about how the same origin policy controls
+Javascript behavior for different scenarios like cross-origin network access (control
+http requests or resource embedding tags), cross-origin script API access (limit
+access to Window and Location objects) and cross-origin data storage access. The
+same origin policy is very broad in terms of what it controls primarily because it
+needs to keep the flexibility that Javascript is known for. Flanagan~\cite[Section~13.6.2]{flanagan2011javascript}
+has more details about the same origin policy and lists some techniques of how the
+same origin policy can be relaxed in some cases (read Cross-Origin Resource Sharing
+(CORS)~\cite{CORS}).
+% Later in the report we
+% will see a particular exploit that is possible since the same origin policy does
+% not restrict loading images from external sources.
+
+\subsubsection{Content Security Policy}
+
+\begin{quotation}
+``Content Security Policy (CSP) is an added layer of security that helps to detect
+and mitigate certain types of attacks, including Cross Site Scripting (XSS) and
+data injection attacks. These attacks are used for everything from data theft to
+site defacement or distribution of malware.''~\cite{csp}
+\end{quotation}
+In CSP, inline scripts are disabled by default which would automatically prevent
+code injection based attacks. Additionally, CSP also allows a server administrator
+to restrict what sources can a web page import executable scripts from. On the face
+of it CSP seems to provide a robust mechanism to prevent XSS and data exfiltration
+attacks.
+
+\subsection{Arguments against common browser security mechanisms \label{sec:against}}
+The security mechanisms mentioned above are implemented in all modern browsers to
+help prevent sensitive data leaks among other security breaches but they are not
+full proof solutions as presented by several researchers some of which are mentioned
+below:
+\begin{itemize}
+  \item Chen et al~\cite{SelfExfil} present cases where the same origin policy falls short
+  in protecting sensitive data from a particular form of the data-exfiltration attack.
+  They define a data-exfiltration attack as:
+
+  \begin{quotation}
+    ``an attack where the adversary exports user's private data to a server controlled
+    by the attacker, possibly using a code injection vulnerability.''
+  \end{quotation}
+  This form of attack would be prevented by the same origin policy. The authors present
+  \textit{self-exfiltration} as a new ``class'' of the data-exfiltration attack. In
+  this form of attack, the injected script does not directly send the extracted data
+  to an attacker-controlled server; instead it is posted to the another location
+  of the victim website itself or to whitelisted origins. The attacker can later
+  log-on/access the victim website or whitelisted site respectively to retrieve the
+  information.
+
+  \item Acker et al~\cite{DataExfilCSP} present a strong case arguing the failure of
+  CSP to prevent data exfiltration. They show that even the strongest CSP policies
+  can be circumvented using DNS and resource prefetching as data exfiltration
+  techniques.
+\end{itemize}
+
+The researchers above reveal flaws in existing browser security mechanisms suggest
+possible improvements to fix them. As mentioned at the beginning of this chapter,
+all browsers are not created equal and so maybe a couple of browser vendors may
+implement one of the suggested solutions. But this would mean the vulnerability
+would still exist in the rest of the browsers till said solution becomes a standard
+and all the vendors adopt it. Moreover these are just some examples of the many
+loopholes that researchers (and unfortunately attackers) have been finding in the
+current browser security architecture.
+
+We propose attacking the problem from the data point of view. Instead of having
+global policies for a web page, the policies should be associated with the data
+itself. The solution we propose is to implement information flow controls on the
+browser by integrating the policy agnostic programming paradigm in client side Javascript.

@@ -1,15 +1,15 @@
-\chapter{What is policy agnostic programming?\label{chap:PAP}}
+\chapter{What is policy-agnostic programming?\label{chap:PAP}}
 
-Before we talk about policy agnostic programming, we first need to give an
-introduction to the domain it belongs to i.e. Information flow security.
+Before we talk about policy-agnostic programming, we first need to give an
+introduction to the domain it belongs to i.e. information flow security.
 
 \section{A brief overview of information flow security}
 
 Information flow security is a security mechanism that consists of information flow
-policies and information flow controls to detect and prevent illegal/unwanted leaks
-of sensitive data by an application. Information flow policies here are the policies
-that define where sensitive data can flow. Information flow controls are the mechanisms
-that enforce them.
+policies and information flow controls to detect and prevent leaking of sensitive
+data by an application. Information flow policies here are the policies that define
+where sensitive data can flow. Information flow controls are the mechanisms that
+enforce them.
 
 When designing a system with information flow security, sensitive data needs to
 be identified and corresponding information flow policies need to be defined. In
@@ -24,7 +24,7 @@ objective is to prevent any unwanted leak of sensitive data. The leak can be in
 terms of an \textit{explicit flow}: \\ \indent
 \texttt{public\textsubscript{L} = confidential\textsubscript{H}} \\
 \noindent or an \textit{implicit flow}: \\ The code-snippet below
-copies the last bit of \texttt{confidential\textsubscript{H}} to public\textsubscript{L}: \\
+copies the last bit of \texttt{confidential\textsubscript{H}} to \texttt{public\textsubscript{L}}: \\
 \indent
 	\texttt{if (confidential\textsubscript{H} \% 2)  == 0 \\ \indent \indent
 		public\textsubscript{L} = 0 \\ \indent
@@ -33,16 +33,17 @@ copies the last bit of \texttt{confidential\textsubscript{H}} to public\textsubs
 The flow of data from an L variable into an H variable on the other hand is considered
 legal.
 
-An important property in information flow security is noninterference. In~\cite{PrincInfoSec},
-noninterference is defined as: ``Program $c$ satisfies noninterference if, for
-any memories $\mu$ and $v$ that agree on L variables, the memories produced by
-running $c$ on $\mu$ and on $v$ also agree on L variables (provided that both runs
-terminate successfully)''. So noninterference is formalisation of the idea that a
-program should not leak information about H (private) variables through L (public)
-variables. All systems that provide information flow analysis need to prove
-noninterference. Although strict noninterference is not desired since a real world
-system may need to change labels or declassify (downgrade level of a variable)
-variables at runtime.
+An important property in information flow security is noninterference. Smith~\cite{PrincInfoSec},
+defines a program satisfying noninterference as: \begin{quotation}
+	\noindent Program $c$ satisfies noninterference if, for
+	any memories $\mu$ and $v$ that agree on L variables, the memories produced by
+	running $c$ on $\mu$ and on $v$ also agree on L variables (provided that both runs
+	terminate successfully).
+\end{quotation} It is a formalization of the idea that a program should not leak
+information about H (private) variables through L (public) variables. All systems
+that provide information flow analysis need to prove noninterference. Although
+strict noninterference is not desired since a real world system may need to change
+labels or declassify (downgrade level of a variable) variables at runtime.
 
 Information flow security is used to ensure \textit{confidentiality} and \textit{integrity}
 of data. Our solution will mostly focus on \textit{confidentiality} but here we would
@@ -56,7 +57,7 @@ network or user input.
 
 \subsection{Language based information flow security \label{subsec:langinfo}}
 There have been several approaches that researchers have tried to deal with the
-problem of information flow security primarily categorised into static and dynamic
+problem of information flow security primarily categorized into static and dynamic
 analysis~\cite{Russo, Chlipala}. In recent years however, a lot of the research has
 been focussed on language-based approaches with the objective of making information
 flow security a part of the programming language used for development. These are
@@ -69,7 +70,7 @@ an ordinary type and a label that describes how the value may be used. It is the
 job of the compiler to perform type checking; whenever a program containing labelled
 types is read, while type checking the compiler also makes sure that there will
 be no illegal flow of information at run-time. The authors call such a type system
-that enforces inforrmation flow policies a \textit{security-type system}.
+that enforces information flow policies a \textit{security-type system}.
 
 An example of a language with a security-type system is Jif(Java + information flow)
 \cite{jifurl} that extends Java with information flow control and access control support
@@ -85,15 +86,15 @@ all over the program whenever a sensitive value is used. When access to a sensit
 value is forbidden by a policy and the programmer has not handled such cases, the
 program is likely to behave in an unexpected manner or get stuck. As Yang puts it
 in her thesis~\cite{YangPhd}, handling all cases where sensitive variables are used
-leads to "programmer burden from policy spaghetti". That is, using a system like
+leads to ``programmer burden from policy spaghetti''. That is, using a system like
 Jif results in policy checking logic scattered throughout the code. This leads to
 code that is difficult to maintain and prone to human error. Another problem is
-realised when these policies need to be changed which would mean changes everywhere
+realized when these policies need to be changed which would mean changes everywhere
 the sensitive variable is used.
 
 \section{The policy-agnostic programming model}
 In an attempt to make the implementation of information flow security more flexible,
-Yang et al introduced the policy-agnostic programming (PAP) model in~\cite{Jeeves}.
+Yang et al~\cite{Jeeves} introduced the policy-agnostic programming (PAP) model.
 PAP is an approach where the developer only needs to focus on writing core functionality
 without the additional burden of thinking about data privacy constraints on sensitive
 values.
@@ -111,9 +112,9 @@ associated with them.
 The initial implementation of Jeeves involved symbolic evaluation and constraint
 solving to produce outputs adhering to the policies associated with sensitive data.
 This approach had limitations in terms of implementation feasibility and expressiveness
-which is why it was later extended with faceted values in~\cite{FacetedJeeves}.
+which is why it was later extended with faceted values~\cite{FacetedJeeves}.
 The faceted execution of policy-agnostic programs is based on work by Austin and
-Flanagan in~\cite{Faceted}. In fact, we will be extending the implementation done
+Flanagan~\cite{Faceted}. In fact, we will be extending the implementation done
 in~\cite{Faceted} to implement the policy-agnostic programming model.
 
 \textbf{To be continued...}
