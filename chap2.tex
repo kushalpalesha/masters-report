@@ -11,23 +11,27 @@ data by an application. Information flow policies here are the policies that def
 where sensitive data can flow. Information flow controls are the mechanisms that
 enforce them.
 
+\subsection{Basic principles of information flow security}
 When designing a system with information flow security, sensitive data needs to
 be identified and corresponding information flow policies need to be defined.
 Smith~\cite{PrincInfoSec} talks about basic principles of information flow security
-that we mention here in brief. We assign \textit{security} labels to variables
+that we mention here in brief.
+\subsubsection{Security labels}
+We assign \textit{security} labels to variables
 according to the level of security they are classified into. The most basic labels
 are L for low security or public information and H for high security or private
 information; goal is to prevent improper leaks of information in H variables to
 L variables. The flow of data from an L variable into an H variable is legal.
 
+\subsubsection{Explicit and implicit flow}
 In information flow security, the leak can be in terms of an \textit{explicit flow}
-or an \textit{implicit flow}. \\
-The following is an example of an \textit{explicit flow} where there is a direct
-flow of data from an H variable to an L variable.
+or an \textit{implicit flow}. The following is an example of an \textit{explicit flow} where there is a direct
+flow of data from an H variable to an L variable: \\
 \indent
-\texttt{public\textsubscript{L} = confidential\textsubscript{H}} \\
+\texttt{public\textsubscript{L} = confidential\textsubscript{H}}
+\eject
 \noindent \\
-The code-snippet below is an example of an \textit{implicit flow}. \\
+The code-snippet below is an example of an \textit{implicit flow}: \\
 \indent
 	\texttt{if (confidential\textsubscript{H} \% 2)  == 0 \\ \indent \indent
 		public\textsubscript{L} = 0 \\ \indent
@@ -39,6 +43,7 @@ is being copied into the L variable (\texttt{public\textsubscript{L}}). Any case
 where there is a branching statement that depends on an H variable has a potential
 data leak in terms of an \textit{implicit flow}.
 
+\subsubsection{Noninterference \label{sec:noninterference}}
 An important property in information flow security is noninterference. Smith~\cite{PrincInfoSec},
 defines a program satisfying noninterference as:
 
@@ -52,8 +57,15 @@ It is a formalization of the idea that a program should not leak
 information about H (private) variables through L (public) variables. All systems
 that provide information flow analysis need to prove noninterference. Although
 strict noninterference is not desired since a real world system may need to change
-labels or declassify (downgrade level of a variable) variables at runtime.
+labels or declassify (downgrade level of a variable) variables at runtime. One such
+relaxed form of noninterference is \textit{termination-insensitive noninterference}
+which still maintains the property of private inputs not influencing public outputs
+on program execution although private information can influence the termination of
+the program. Although the termination of a program is a publicly observable fact,
+Austin and Flanagan~\cite{Faceted} found only one attack through this channel which
+uses a brute force approach~\cite{TINI}.
 
+\subsubsection{Confidentiality and integrity}
 Information flow security is used to ensure \textit{confidentiality} and \textit{integrity}
 of data. Our solution will mostly focus on \textit{confidentiality} but here we would
 briefly like to define the two in the context of information flow security. \textit{Confidentiality}
@@ -70,6 +82,28 @@ is given as input to the \texttt{eval} function. \texttt{eval} is a function tha
 is available in Javascript that takes a string (assumed to be code) as input and
 executes it.
 
+\subsection{Need for information flow security}
+On the face of it information flow security may seem like an unnecessary overhead
+for something that seems to have no real world use. This also seems to be the general
+consensus since it has seen very little adoption in commercial software systems.
+A majority of these systems rely on standard security mechanisms like access control,
+encryption, and firewalls. Sabelfeld and Myers~\cite{LangInfo} show how these mechanisms
+fall short in completely preventing sensitive data leaks. Access control is an
+important part of any security infrastructure which is used to control access of
+data to legitimate users but once access is granted, there is no way to control
+how the data is used. Similarly, encryption will ensure that data will remain
+confidential while in transit between two end-points but once the data is decrypted
+at the receiving end, there is no way to control the flow of data from that point
+onwards. A similar argument can be made for firewalls.
+
+Yang~\cite{comey} in her blog post talks about a very popular privacy leak in recent
+times. She explains how the leak was a result of a vulnerability that existed in
+Instagram. While Instagram does protect the identity of users who wish to remain
+private, it does not prevent their recommendation algorithms access to the same
+data. The result of computations done by these algorithms is not protected which
+is what led to the leak in this particular case.
+
+
 \subsection{Language based information flow security \label{subsec:langinfo}}
 There have been several approaches that researchers have tried to deal with the
 problem of information flow security primarily categorized into static and dynamic
@@ -77,7 +111,7 @@ analysis~\cite{Russo, Chlipala}. In recent years however, a lot of the research 
 been focussed on language-based approaches with the objective of making information
 flow security a part of the programming language used for development. These are
 mostly extensions to existing programming languages that provide constructs to define
-labels and policies and has a mechanism to check those policies. As Sablefeld and
+labels and policies and has a mechanism to check those policies. As Sabelfeld and
 Myers~\cite{LangInfo} discuss, the use of type systems for information flow analysis
 presents a promising approach to get a practical implementation of information
 flow control. Here, every expression has a security type with two parts:
@@ -95,17 +129,17 @@ static information flow analysis.
 
 The programming model introduced with Jif provides a robust set of features along
 with the ability to specify information flow policies that are enforced by the Jif
-compiler, but it is still not adopted in many practical, real-world systems. This is largely
-due to the fact that a programmer must still have policy checking logic all over
-the program whenever a sensitive value is used. When access to a sensitive value
-is forbidden by a policy and the programmer has not handled such cases, the program
-is likely to behave in an unexpected manner or get stuck. As Yang puts it in her
-thesis~\cite{YangPhd}, handling all cases where sensitive variables are used leads
-to ``programmer burden from policy spaghetti''. That is, using a system like Jif
-results in policy checking logic scattered throughout the code. This leads to code
-that is difficult to maintain and prone to human error. Another problem is realized
-when these policies need to be changed, which would mean changes everywhere the
-sensitive variable is used.
+compiler, but it is still not adopted in many practical, real-world systems. This
+is largely due to the fact that a programmer must still have policy checking logic
+all over the program whenever a sensitive value is used. When access to a sensitive
+value is forbidden by a policy and the programmer has not handled such cases, the
+program is likely to behave in an unexpected manner or get stuck. As Yang puts it
+in her thesis~\cite{YangPhd}, handling all cases where sensitive variables are used
+leads to ``programmer burden from policy spaghetti''. That is, using a system like
+Jif results in policy checking logic scattered throughout the code. This leads to
+code that is difficult to maintain and prone to human error. Another problem is
+realized when these policies need to be changed, which would mean changes everywhere
+the sensitive variable is used.
 
 \section{The policy-agnostic programming model}
 In an attempt to make the implementation of information flow security more flexible,
@@ -115,28 +149,52 @@ without the additional burden of thinking about data privacy constraints on sens
 values.
 
 PAP is introduced using Jeeves, a domain specific language that provides constructs
-to define sensitive labels, policies and to assign labels to variables. In Jeeves,
-sensitive data has two views associated with it, a high confidentiality view and a
-low confidentiality view. What view of the sensitive data is revealed to a particular
-output channel depends on the ``context'' of the channel and the policy associated with the
-sensitive data. ``Context'' here is an object that contains relevant information
-that a policy may refer to. This can vary depending on the application.~\cite{FacetedJeeves}
-provides an example of a context object for a health database application:\\
-\indent\texttt{HealthContext \{viewer: User, time: Date\}}\\
+to define sensitive labels, policies, and to mark variables as sensitive. In
+Jeeves, sensitive data has two views associated with it, a high confidentiality
+view and a low confidentiality view. What view of the sensitive data is revealed
+to a particular output channel depends on the ``context'' of the channel and the
+policy associated with the sensitive data. ``Context'' here is an object that contains
+relevant information that a policy may refer to. This can vary depending on the
+application. Austin et al~\cite{FacetedJeeves} provide an example of a context
+object for a health database application:\\
+\indent \indent \texttt{HealthContext \{viewer: User, time: Date\}}\\
 Here, the policies attached to sensitive variables will be resolved based on the
 user who is trying to access a health record while time allows certain policies
 to define expiration and activation times for visibility.
-The goal of PAP is that you define all policies on sensitive variables
-when the variables themselves are defined. After this, everywhere the sensitive variables
-are used, the language runtime is responsible for enforcing and checking the policies
+The goal of PAP is that you define all policies on sensitive variables when the
+variables are defined. After this, everywhere the sensitive variables are used,
+the language runtime is responsible for enforcing and checking the policies
 associated with them.
 
 The initial implementation of Jeeves involved symbolic evaluation and constraint
 solving to produce outputs adhering to the policies associated with sensitive data.
-This approach had limitations in terms of implementation feasibility and expressiveness,
-which is why it was later extended with faceted values~\cite{FacetedJeeves}.
+This approach had limitations in terms of implementation feasibility and expressiveness
+which were later addressed by extending it with faceted values~\cite{FacetedJeeves}.
 The faceted execution of policy-agnostic programs is based on work by Austin and
-Flanagan~\cite{Faceted}. In fact, we will be extending the implementation done
-in~\cite{Faceted} to implement the policy-agnostic programming model.
+Flanagan~\cite{Faceted}.
 
-\textbf{To be continued...}
+\subsection{What is a faceted value?}
+A faceted value as defined in~\cite{Faceted} is ``a triple consisting of a principal
+$k$ and two values $V_H$ and $V_L$.'' It is represented as:
+\[\langle k~?~V_H~:~V_L \rangle\]
+Here you can imagine the principal $k$ to be the owner/guard of the sensitive value.
+The faceted value appears as $V_H$ (private facet) to private observers that are
+allowed to view $k$'s private data, and as $V_L$ (public facet) to other public
+observers. In Jeeves, principals of faceted values have policies associated with
+them which are rules that the ``guard'' will check before providing access to the
+private facet. These policies need not be checked till the value needs to be revealed
+to an output channel. So, while faceted values are flowing through a program, there
+are special evaluation semantics defined that we discuss in section~\ref{sec:facetEval}.
+The following is an example of a faceted value that specifies a sensitive email
+address:
+\[\langle k~?~\text{`jon@sjsu.edu'}~:~\text{`[redacted]'} \rangle\]
+When the policy associated with $k$ can be resolved to true, the value `jon@sjsu.edu'
+is visible and if the policy is resolved to false, then the value `[redacted]' is
+visible.
+
+\subsection{Evaluation semantics of faceted values \label{sec:facetEval}}
+
+
+% Yang et al\cite{Jacqueline} present the policy agnostic programming paradigm for
+% database-backed server-side applications. They present Jacqueline, a framework
+% they developed by extending an existing MVC framework~\cite{django} with Jeeves.
