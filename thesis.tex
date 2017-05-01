@@ -17,11 +17,61 @@
 \usepackage{amsmath}
 \usepackage[T1]{fontenc}
 \usepackage{textcomp} % Required for upquote.
-\usepackage{listings} % Used for printing source code in papers
+\usepackage[procnames]{listings} % Used for printing source code in papers
 \usepackage{microtype}
 \usepackage{pgfplots} % Used to create graphs
 \usepackage{makecell} % Used to create thick links in tables
 \usepackage[shortcuts]{extdash} % Allow the use of unbreakable "extdash" spacers.
+\usepackage{float}
+
+%%%%%%
+%% Colors for python listings
+%%%%%%
+\definecolor{keywords}{RGB}{255,0,90}
+\definecolor{comments}{RGB}{0,0,113}
+\definecolor{red}{RGB}{160,0,0}
+%%%%%%
+
+
+%%%%%%
+%%Javascript support for listings
+%%%%%%
+\usepackage{color}
+\definecolor{lightgray}{RGB}{.9,.9,.9}
+\definecolor{graygreen}{RGB}{.4,140,.4}
+\definecolor{purple}{RGB}{0.65, 0.12, 0.82}
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, instanceof},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{graygreen}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+% \lstset{
+%    language=JavaScript,
+%    backgroundcolor=\color{lightgray},
+%    extendedchars=true,
+%    basicstyle=\footnotesize\ttfamily,
+%    showstringspaces=false,
+%    showspaces=false,
+%    numbers=left,
+%    numberstyle=\footnotesize,
+%    numbersep=9pt,
+%    tabsize=2,
+%    breaklines=true,
+%    showtabs=false,
+%    captionpos=b
+% }
+%%%%%%
+
 
 % Do not add extra space around itemizes
 \usepackage{enumitem}

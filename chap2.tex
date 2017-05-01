@@ -1,7 +1,7 @@
 \chapter{What is policy-agnostic programming?\label{chap:PAP}}
 
 Before we talk about policy-agnostic programming, we first need to give an
-introduction to the domain it belongs to i.e. information flow security.
+introduction to the domain it belongs to, i.e. information flow security.
 
 \section{A brief overview of information flow security}
 
@@ -68,19 +68,18 @@ uses a brute force approach~\cite{TINI}.
 \subsubsection{Confidentiality and integrity}
 Information flow security is used to ensure \textit{confidentiality} and \textit{integrity}
 of data. Our solution will mostly focus on \textit{confidentiality} but here we would
-briefly like to define the two in the context of information flow security. \textit{Confidentiality}
-as we have described above ensures that there is no unwanted flow of information
-from H variables into L variables. For example, you wouldn't want to allow the
-flow of data from a variable that contains credit card information into a variable
-that is meant to store payment amount. \textit{Integrity} introduces the concepts of
-tainted and untainted variables. Here the aim is to not allow the flow of information
-of tainted variables into untainted variables. Here tainted variables are any
-variables that contain information received from an external source for example
-network or user input. For example, data in a tainted variable needs to be sanitized
-before it can be used as a parameter in an SQL query or as part of a string that
-is given as input to the \texttt{eval} function. \texttt{eval} is a function that
-is available in Javascript that takes a string (assumed to be code) as input and
-executes it.
+briefly like to define the two in the context of information flow security.
+\textit{Confidentiality} as we have described above ensures that there is no unwanted
+flow of information from H variables into L variables. For example, you wouldn't
+want to allow the flow of data from a variable that contains credit card information
+into a variable that is meant to store payment amount. \textit{Integrity} introduces
+the concepts of tainted and untainted variables. Variables that contain information
+received from an external source (network or user input) are marked as tainted. Here
+the aim is to not allow the flow of information from tainted variables into untainted
+variables. For example, data in a tainted variable needs to be sanitized before it
+can be used as a parameter in an SQL query or as part of a string that is used as
+input to the \texttt{eval} function. \texttt{eval} is a Javascript function that
+takes Javascript code (in the form of a string) as input and executes it.
 
 \subsection{Need for information flow security}
 On the face of it information flow security may seem like an unnecessary overhead
@@ -97,7 +96,7 @@ at the receiving end, there is no way to control the flow of data from that poin
 onwards. A similar argument can be made for firewalls.
 
 Yang~\cite{comey} in her blog post talks about a very popular privacy leak in recent
-times. She explains how the leak was a result of a vulnerability that existed in
+times. She explains how the leak was the result of a vulnerability that existed in
 Instagram. While Instagram does protect the identity of users who wish to remain
 private, it does not prevent their recommendation algorithms access to the same
 data. The result of computations done by these algorithms is not protected which
@@ -106,23 +105,23 @@ is what led to the leak in this particular case.
 
 \subsection{Language based information flow security \label{subsec:langinfo}}
 There have been several approaches that researchers have tried to deal with the
-problem of information flow security primarily categorized into static and dynamic
-analysis~\cite{Russo, Chlipala}. In recent years however, a lot of the research has
-been focussed on language-based approaches with the objective of making information
+problem of information flow security, primarily categorized into static and dynamic
+analysis~\cite{Russo, Chlipala}. In recent years, a lot of the research has been
+focussed on language-based approaches with the objective of making information
 flow security a part of the programming language used for development. These are
 mostly extensions to existing programming languages that provide constructs to define
-labels and policies and has a mechanism to check those policies. As Sabelfeld and
-Myers~\cite{LangInfo} discuss, the use of type systems for information flow analysis
-presents a promising approach to get a practical implementation of information
-flow control. Here, every expression has a security type with two parts:
-an ordinary type and a label that describes how the value may be used. It is the
-job of the compiler to perform type checking; whenever a program containing labelled
-types is read, the compiler also makes sure that there will be no illegal flow of
-information at run-time. The authors call such a type system that enforces information
-flow policies a \textit{security-type system}.
+labels, to specify policies, and to check those policies. As Sabelfeld and Myers~\cite{LangInfo}
+discuss, the use of type systems for information flow analysis presents a promising
+approach to get a practical implementation of information flow control. Here, every
+expression has a security type with two parts: an ordinary type and a label that
+describes how the value may be used. It is the job of the compiler to perform type
+checking; whenever a program containing labelled types is read, the compiler also
+makes sure that there will be no illegal flow of information at run-time. The authors
+call such a type system that enforces information flow policies a \textit{security-type
+system}.
 
-An example of a language with a security-type system is Jif (Java + information flow)
-\cite{jifurl} that extends Java with information flow control and access control support
+Jif (Java + information flow) is an example of a language with a \textit{security-type system}
+\cite{jifurl}, it extends Java with information flow controls and access controls
 that are enforced at compile-time and run-time. It is based on the JFlow
 language~\cite{Jflow}, which is the first usable programming model that provided
 static information flow analysis.
@@ -168,7 +167,7 @@ associated with them.
 
 The initial implementation of Jeeves involved symbolic evaluation and constraint
 solving to produce outputs adhering to the policies associated with sensitive data.
-This approach had limitations in terms of implementation feasibility and expressiveness
+This approach had limitations in terms of implementation feasibility and expressiveness,
 which were later addressed by extending it with faceted values~\cite{FacetedJeeves}.
 The faceted execution of policy-agnostic programs is based on work by Austin and
 Flanagan~\cite{Faceted}.
@@ -193,8 +192,135 @@ is visible and if the policy is resolved to false, then the value `[redacted]' i
 visible.
 
 \subsection{Evaluation semantics of faceted values \label{sec:facetEval}}
+The semantics of Jeeves are modeled using $\lambda^{jeeves}$ which is the core
+language that extends the faceted execution semantics of Austin and Flanagan~\cite{Faceted}.
+Figure~\ref{fig:lambdaJeeves} shows the $\lambda^{jeeves}$ language. Notable here
+are the faceted, label declaration and policy specification expressions which help
+build policy agnostic programs. We briefly discuss some of the faceted evaluation
+semantics to give a gist of a how a policy agnostic program might behave in certain
+scenarios. In Chapter~\ref{chap:solution}, we will talk about the Jeeves constructs
+that enable PAP.
 
+A \textit{program counter (pc)} is used to track when program execution is being
+influenced by a public or private facet. Any expression involving a faceted value
+becomes a faceted expression. So if we have something like:
+\[\langle k~?~V_H~:~V_L \rangle + number \]
+This can be though of as the faceted expression:
+\[\langle k~?~V_H + number~:~V_L + number \rangle\]
+which is of the form:
+\[\langle k~?~e_1~:~e_2 \rangle\]
+The faceted evaluation semantics shown in Figure~\ref{fig:facetEval} defines [F-SPLIT]
+as the rule to evaluate faceted expressions. Here, assuming neither $k$ nor $\bar{k}$
+are in the current \textit{pc}, we evaluate both expressions $e_1$ and $e_2$
+one after the other. First, $k$ is added to \textit{pc} to obtain $V_1$ from $e_1$
+and then $\bar{k}$ is added to \textit{pc} to obtain $V_2$ from $e_2$. Finally,
+we create a new faceted value:
+\[\langle k~?~V_1~:~V_2 \rangle\]
+On the other hand, if the \textit{pc} already contains either $k$ or $\bar{k}$,
+then only one expression is evaluated as defined in the rules [F-LEFT] and [F-RIGHT].
 
-% Yang et al\cite{Jacqueline} present the policy agnostic programming paradigm for
-% database-backed server-side applications. They present Jacqueline, a framework
-% they developed by extending an existing MVC framework~\cite{django} with Jeeves.
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.25, frame]{images/lambdaJeeves.png}
+	\caption{The $\lambda^{jeeves}$ source language~\cite{FacetedJeeves}}
+	\label{fig:lambdaJeeves}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.25, frame]{images/facetEval.png}
+	\caption{Faceted evaluation semantics~\cite{FacetedJeeves}}
+	\label{fig:facetEval}
+\end{figure}
+
+In Figure~\ref{fig:fif}, the [F-IF-SPLIT] rule defines how a conditional statement
+is handled for faceted values. Figure~\ref{fig:implicit flow} shows how such an
+expression would look like in Javascript and it also helps helps us understand
+how faceted evaluation would prevent a potential implicit flow. Since the control
+flow is being influenced by a faceted value, the behavior of the program under both
+facets is evaluated. So, for observers that are allowed to view values with principal
+$h$, \texttt{val > 0} would evaluate to true and \texttt{v1} would be equal to 24.
+On the other hand, for the public observers, \texttt{val > 0} would evaluate to
+false and \texttt{v1} is not assigned any value. The final return value would then
+become \texttt{<h?24:undefined>}. Note, if we there was an initial assignment to
+\texttt{v1}, then that would be the public facet of the return value instead of
+\textit{undefined}.
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.275, frame]{images/fif.png}
+	\caption{Semantics of Derived Encodings~\cite{FacetedJeeves}}
+	\label{fig:fif}
+\end{figure}
+
+\begin{figure}
+	\begin{lstlisting}[language=javascript,frame=single, breaklines=true,basicstyle=\footnotesize\ttfamily, numbers=left, extendedchars=true, tabsize=2]
+function f(val) {
+  var v1;
+  if (val > 0) {
+    v1 = val - 1;
+  }
+  return v1;
+}
+var f1 = <h?25:0>;
+f(f1);
+\end{lstlisting}
+\caption{Faceted Evaluation of a potential implicit flow}
+\label{fig:implicit flow}
+\end{figure}
+
+The faceted evaluation semantics of Jeeves gives it a few desirable properties;
+the \textbf{projection property} which states that a single execution with faceted
+values can be projected onto multiple different executions without faceted values,
+the termination-insensitive noninterference (the projection property helps to prove
+this), and termination-insensitive policy compliance which states that data is revealed
+to an external observer only if it is allowed by the policy specified in the program.
+
+\subsection{The Jacqueline Framework}
+Yang et al~\cite{Jacqueline} demonstrate the practical feasibility of the policy
+agnostic programming paradigm for database-backed server-side applications.
+They introduce Jacqueline, an MVC framework with an aim to provide a platform to
+easily implement information flow security in server side applications. Figure~\ref{fig:DRS}
+shows a snippet of a ``Model'' definition in Jacqueline, how a sensitive value is
+defined, and what a policy looks like. Here, \texttt{document\_name} is the field
+we are marking as sensitive by using the annotation \texttt{@label\_for}. The method
+\texttt{jeeves\_restrict\_documentlabel} defines the policy which as you can see
+is a boolean function while the method \texttt{jeeves\_get\_private\_document\_name}
+defines the public facet of the sensitive value. Once the policy for a sensitive
+variable is defined, the programmer need not worry about where or how they are
+using this value, the Jeeves runtime will take care of any potential leaks and the
+policy is only resolved when the value is going out to an output context like the
+web browser.
+
+\begin{figure}
+\begin{lstlisting}[language=Python, frame=single, breaklines=true, keywordstyle=\color{keywords}, stringstyle=\color{red}, identifierstyle=\color{darkgray}, procnamekeys={def,class}, basicstyle=\footnotesize\ttfamily, numbers=left, extendedchars=true, tabsize=2]
+class Document(JacquelineModel):
+    document_name = models.CharField(max_length = 128)
+    description = models.CharField(max_length = 512)
+    last_accessed_by = ForeignKey(UserProfile, on_delete=models.CASCADE)
+    department = ForeignKey(Department, on_delete=models.CASCADE)
+    classification = models.IntegerField(default=Levels.TOP_SECRET)
+    project = ForeignKey(Project, on_delete=models.CASCADE)
+    filedata = models.FileField(upload_to='rep/')
+
+    @staticmethod
+    def jeeves_get_private_document_name(document):
+        return "[redacted]"
+
+    @staticmethod
+    @label_for('document_name')
+    @jeeves
+    def jeeves_restrict_documentlabel(document, ctxt):
+        return document.classification <= ctxt.clearance and document.department == ctxt.department
+\end{lstlisting}
+\caption{Model definition in the Jacqueline framework}
+\label{fig:DRS}
+\end{figure}
+
+As seen in the example above, the Jeeves runtime in the Jacqueline framework took
+care of information flow control and resolved the policy for sensitive data only
+when going out to the browser. But, once data is on the browser, the concept of
+facets is lost but we may want to further protect our data against exfiltration
+attacks. This is where our solution would help by persisting faceted values and
+policies associated with them on the client-side. We discuss more about our solution
+in Chapter~\ref{chap:solution}.
