@@ -38,7 +38,7 @@ the \textit{pc} to help keep track of the influence of public or private facets
 on the current flow of execution. In the \texttt{evalIfBlock} function, notice we
 call the base \texttt{evalIfBlock} function if \texttt{cond} is not a faceted value.
 Otherwise, we call the \texttt{evaluateEach} function which encapsulates all the
-function application rules from Figure\ref{fig:appRules}. Similarly, we have built
+function application rules from Figure\ref{fig:appRules}. Similarly, we override
 the rest of the functions in \texttt{BaseExecContext}.
 \lstset{
   language=javascript,
@@ -51,9 +51,6 @@ the rest of the functions in \texttt{BaseExecContext}.
 }
 \begin{figure}
   \begin{lstlisting}
-/**
- * Preserving original behavior of these functions
- */
 var BaseExecContext = {
   getValue: interpreter.ExecutionContext.prototype.getValue,
   putValue: interpreter.ExecutionContext.prototype.putValue,
@@ -62,13 +59,6 @@ var BaseExecContext = {
   evalIfBlock: interpreter.ExecutionContext.prototype.evalIfBlock
 };
 
-/**
- * If block behavior when condition is faceted
- *
- * @param cond
- * @param thenPart
- * @param elsePart
- */
 FacetExecContext.prototype.evalIfBlock = function(cond,thenPart,elsePart) {
   var execContext = FacetExecContext.current;
   if (cond instanceof FacetedValue) {
@@ -96,5 +86,138 @@ FacetExecContext.prototype.evalIfBlock = function(cond,thenPart,elsePart) {
 
 \section{Implementing Jeeves}
 Once we had faceted values working, adding support for Jeeves constructs was pretty
-straightforward. All of the Jeeves constructs are encapsulated in the \texttt{PolicyEnvironment}
-prototype.
+straightforward. All of the Jeeves constructs are encapsulated in the prototype
+of the \texttt{PolicyEnvironment} object which includes the [F-LABEL] and [F-RESTRICT]
+evaluation rules as shown in Figure~\ref{fig:jeevesEval}. Every instance of the \texttt{PolicyEnvironment}
+object has a \texttt{policyMap} that is used to store the `label':`policy' mapping.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.3]{images/jeevesEval}
+  \caption{Evaluation semantics for Jeeves labels and policies~\cite{FacetedJeeves}}
+  \label{fig:jeevesEval}
+\end{figure}
+
+The Jeeves constructs available in the \texttt{PolicyEnvironment} prototype are:
+\begin{enumerate}
+  \item \texttt{mkLabel:} This method is roughly based on the [F-LABEL] rule. It
+    creates a label and associates a default true policy to it.
+  \item \texttt{restrict:} This method associates the given policy function to the
+  given label in the \texttt{policyMap} of the current \texttt{PolicyEnvironment}.
+  \item \texttt{mkSensitive:} This method creates a faceted value. It takes the
+  label, private value, and public value as input and returns a faceted value. This
+  method would only return the private value or the public value in cases where
+  the current program counter contains the label or reverse of the label respectively.
+  \item \texttt{concretize:} This method is used when the faceted value needs to
+  be viewed in an output context. It takes the context object and faceted value
+  as input and resolves the policies for all labels in the program counter of
+  the faceted value recursively till it reaches a raw value with no facets.
+  \item \texttt{partialConcretize:} Partial concretize is similar to the concretize
+  function except it only resolves the policy associated with the first label of
+  a possibly complex faceted value based on the given context object.
+  Figure~\ref{fig:concretize} shows what the concretize and partialConcretize
+  functions look like.
+\end{enumerate}
+
+\begin{figure}
+  \begin{lstlisting}
+function concretize(context, val) {
+  if (val instanceof FacetedValue) {
+    var label = head(val);
+    var policy = this.policyMap[label];
+    if (policy(context)) {
+      return this.concretize(context, val.high);
+    } else {
+      return this.concretize(context, val.low);
+    }
+  } else {
+    return val;
+  }
+}
+function partialConcretize(context, val) {
+  if (val instanceof FacetedValue) {
+    var label = head(val);
+    var policy = this.policyMap[label];
+    if (policy(context)) {
+      val = val.high;
+    } else {
+      val = val.low;
+    }
+  }
+  return val;
+}
+  \end{lstlisting}
+  \caption{Concretize and partialConcretize function definitions}
+  \label{fig:concretize}
+\end{figure}
+
+\subsection{Usage of the Jeeves constructs}
+Figure~\ref{fig:JeevesExamples} shows two test cases of how the Jeeves constructs
+listed above would be used. Note, \texttt{policyEnv} is an instance of the
+\texttt{PolicyEnvironment} prototype.
+
+In \texttt{testPolicyComplexFacets}, we are constructing complex faceted values
+with two principals/labels and have two different policies for each respectively.
+The call to \texttt{concretize} at the end shows what a context object would look
+like in this case. The faceted value stored in \texttt{a} in notation looks like
+this: $\langle x~?~\langle y~?10~:~15 \rangle~:~0 \rangle$.
+
+In \texttt{testPartialConcretize}, we are using \texttt{partialConcretize} with
+two different context objects. This type of usage would be ideal for a client-server
+interaction where you can have different context objects for the server and client-side
+respectively. Note, in the example the policies associated with the two labels are
+expecting different properties in the context object passed to them.
+
+\begin{figure}
+  \begin{lstlisting}
+ function() testPolicyComplexFacets{
+  var x = policyEnv.mkLabel("x");
+  policyEnv.restrict(x, function (context) {
+    return context.val1 === 22 && context.val2 === 21;
+  });
+
+  var y = policyEnv.mkLabel("y");
+  policyEnv.restrict(y, function (context) {
+    return context.val2 === 22;
+  });
+  var a = policyEnv.mkSensitive(x, policyEnv.mkSensitive(y, 10, 15), 0);
+  return assertEquals(policyEnv.concretize({val1: 22, val2: 21}, a), 15);
+};
+
+function testPartialConcretize() {
+  var x = policyEnv.mkLabel("x");
+  policyEnv.restrict(x, function (context) {
+    return context.val1 === 22 && context.val2 === 21;
+  });
+
+  var y = policyEnv.mkLabel("y");
+  policyEnv.restrict(y, function (context) {
+    return context.otherVal = 44;
+  });
+  var a = policyEnv.mkSensitive(x, policyEnv.mkSensitive(y, 10, 15), 0);
+
+  var result1 = assertEquals(policyEnv.partialConcretize({val1: 22, val2: 21}, b).toString(), "{y?10:15}");
+  var result2 = assertEquals(policyEnv.partialConcretize({val:22}, b), 0);
+  return result2 && result1;
+};
+  \end{lstlisting}
+  \caption{Example usage of Jeeves constructs}
+  \label{fig:JeevesExamples}
+\end{figure}
+
+\textbf{\textit{Should i move the following sections to their own separate chapter?}}
+\section{Policy agnostic programming in dom.js}
+With Jeeves constructs in place, we now demonstrate how policy-agnostic programming
+will help protect browser content. We do that by building policy-agnostic programming
+controls into dom.js which is a Javascript DOM implementation~\cite{dom.js}. There
+were a few challenges to get dom.js to work with Narcissus. The primary obstacle
+was that dom.js heavily depended on prototype inheritance but Narcissus in its
+original form did not support it. We added prototype inheritance support to our
+version of Narcissus and got dom.js working.
+
+\section{A data-exfiltration case study}
+
+
+\textbf{\textit{This is a work in progress...}}
+% Our original intention was to integrate our version of Narcissus into a web browser
+% and replace the host Javascript engine.
