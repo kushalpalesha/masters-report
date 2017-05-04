@@ -1,12 +1,13 @@
 \chapter{Implementing policy-agnostic programming on the client side\label{chap:solution}}
 We incorporated policy-agnostic programming into Javascript by adding constructs
-defined for the Jeeves language as a subsystem. We chose Narcissus~\cite{narc},
+defined for the Jeeves language as a subsystem\footnote{The code is available at:
+\url{https://github.com/kushalpalesha/narcissus}}. We chose Narcissus~\cite{narc},
 a Javascript interpreter written in Javascript, to create the proof of concept.
 Narcissus was built by its developers to be able to prototype new language features
 for Javascript.
 
 \section{Implementing faceted values in Narcissus}
-Integral to implementing Jeeves is the implementation of faceted values. Our implementation
+The implementation of faceted values is integral to implementing Jeeves. Our implementation
 of faceted values derives heavily from the work done by Austin and Flanagan~\cite{Faceted}
 and is inspired from the concept presented by Kerchove et al~\cite{Modular} for
 ``modular instrumentation'' of interpreters. They talk about how many dynamic analysis
@@ -16,20 +17,20 @@ specific criteria to follow in order to achieve ``modular instrumentation'' usin
 the implementation~\cite{ZaphodFacets} of faceted values~\cite{Faceted} as a case
 study. While we borrow a few ideas from this, our implementation does not follow
 the criteria specified because achieving ``modular instrumentation'' would involve
-non-trivial changes to the Narcissus interpreter making it out of scope of our problem.
-What we did achieve is untangling of the concerns of the core interpreter for non-faceted
-evaluation from the concerns of faceted evaluation. This makes it easier to relate
-principles of faceted evaluation with the implemented prototype and also to extend
-or reuse it.
+non-trivial changes to the Narcissus interpreter making it out of scope for our problem.
+What we did achieve is the untangling of the concerns of the core interpreter for
+non-faceted evaluation from the concerns of faceted evaluation. This makes it easier
+to relate principles of faceted evaluation with the implemented prototype and also
+to extend or reuse it.
 
 Our implementation of faceted values is independent from the core Narcissus interpreter.
 This involved making the core interpreter modular to be able to modify existing
 evaluation mechanisms to behave differently for faceted values. The Narcissus interpreter
-has an execute function which consists a switch case control flow that is set to
+has an execute function that consists of a switch case control flow that is set to
 perform the appropriate set of operations based on the type of node identified by
 the parser. Wherever there is need for faceted behavior, instead of making the core
 interpreter code handle faceted behavior, we moved the part we would need to change
-into a function and later override it to handle faceted behavior.
+into a function and later override it to handle the faceted behavior.
 Figure~\ref{fig:facetif} shows how this overriding is implemented for the [F-IF-SPLIT]
 evaluation rule. Here, \texttt{BaseExecContext} is an object that stores a copy of all the
 fucntions from the core interpreter which we need to override. \texttt{ExecutionContext}
@@ -48,7 +49,8 @@ in \texttt{BaseExecContext} in a similar manner.
   basicstyle=\footnotesize\ttfamily,
   numbers=left,
   extendedchars=true,
-  tabsize=2
+  tabsize=2,
+  showstringspaces=false
 }
 \begin{figure}
   \begin{lstlisting}
@@ -169,8 +171,8 @@ this: $\langle x~?~\langle y~?10~:~15 \rangle~:~0 \rangle$.
 In \texttt{testPartialConcretize}, we are using \texttt{partialConcretize} with
 two different context objects. This type of usage would be ideal for a client-server
 interaction where you can have different context objects for the server and client-side
-respectively. Note, in the example the policies associated with the two labels are
-expecting different properties in the context object passed to them.
+respectively. Note: in the example, the policies associated with the two labels
+are expecting different properties in the context object passed to them.
 
 \begin{figure}
   \begin{lstlisting}
@@ -211,18 +213,18 @@ function testPartialConcretize() {
 
 \section{Policy agnostic programming in dom.js}
 Web browsers have an implementation of the DOM to allow scripts to
-access and manipulate content. We add faceted values and policy agnostic-programming
+access and manipulate content. We add faceted values and policy-agnostic programming
 constructs to the DOM implementation to show how it can be used to prevent
 sensitive data from leaking.
 
-We use dom.js~\cite{dom.js} which is a DOM implementation written in
-Javascript. This makes it possible for us to parse it using Narcissus
-and make DOM components available to scripts just like a web browser would. The
-advantages of using dom.js is highlighted by Austin et al~\cite[Section 9.3]{TOPLAS}
-since it makes it possible to include faceted values in the DOM and track flow of
-private information on the web browser.
+We use dom.js~\cite{dom.js}, which is a DOM implementation written in Javascript.
+This makes it possible for us to parse it using Narcissus and make DOM components
+available to scripts just like a web browser would. The advantages of using dom.js
+is highlighted by Austin et al~\cite[Section 9.3]{TOPLAS} since it makes it possible
+to include faceted values in the DOM and track flow of private information on the
+web browser.
 
-We first identify entry and exit points in the DOM that have potential
+We first identify the entry and exit points in the DOM that have the potential
 to leak sensitive data such as when the \texttt{setAttribute} and \texttt{getAttribute}
 functions of an element are called; when a \texttt{Text} node is created
 and appended to a DOM and when the \texttt{innerHTML} property of an element
@@ -246,22 +248,22 @@ type WeakMap that provides a loose mapping from objects to values~\cite{WeakMap}
 Figure~\ref{fig:createTextNode} shows how creation of a text node for faceted values
 is handled within the DOM. The function \texttt{createTextNode} would create a
 node that would eventually be rendered onto a web page. At this point, we need to
-decide which facet of a faceted value should be rendered. Note, in the function
-we are calling \texttt{isFaceted} which we have made available in the global scope.
-If the input to \texttt{createTextNode()} is faceted then we concretize that value
-to get a raw value to be rendered. Additionally, we add the faceted value itself
-to the \texttt{facetedValueMap} with the textNode as key. We have added similar
-code in the \texttt{setAttribute} function of an element with one distinction to
-the object that is used as key for the \texttt{facetedValueMap}. Here we cannot
-use the node as the key since we need to have different keys for different
-attributes of an element. So we created an object using the id of the element and
-the attribute name as follows:
+decide which facet of a faceted value should be rendered. If the input to
+\texttt{createTextNode()} is faceted, then we concretize that value to get a raw
+value to be rendered. Note, in the concretize function we do not specify what the
+\texttt{context} object looks like. We talk about this in detail in
+Section~\ref{sec:ctxt}. Additionally, we add the faceted value itself to the
+\texttt{facetedValueMap} with the textNode as key. We have added similar code in
+the \texttt{setAttribute} function of an element with one distinction to the object
+that is used as key for the \texttt{facetedValueMap}. Here we cannot use the node
+as the key since we need to have different keys for different attributes of an element.
+So we created an object using the id of the element and the attribute name as follows:
 \indent\texttt{facetedValueMap[\{id:this.id, attr:attributeName\}] = value;}
 \noindent
 
 Figure~\ref{fig:innerHTML} shows how access to the \texttt{innerHTML} property of
 an element would return a faceted value instead of the actual content that was
-rendered on the web page (lines 7-9). Note, \texttt{serialize} is a function
+rendered on the web page (lines 7-9). Note that \texttt{serialize} is a function
 called by the \texttt{innerHTML} getter. We have similar code to return a faceted
 value in the \texttt{getAttribute} function of an element with the key as shown
 above for the \texttt{setAttribute} function.
@@ -296,7 +298,7 @@ createTextNode: function createTextNode(data) {
   var dataString = data;
   var dataIsFaceted = isFaceted(data);
   if (dataIsFaceted) {
-    dataString = window.policyEnv.concretize(null, data);
+    dataString = window.policyEnv.concretize({...}, data);
   }
   var textNode = unwrap(this).createTextNode(String(dataString));
   if (dataIsFaceted) facetedValueMap[textNode] = data;
@@ -311,27 +313,29 @@ createTextNode: function createTextNode(data) {
 \section{A data exfiltration case study \label{sec:exfil}}
 We present a simple data exfiltration attack that succeeds in exfiltrating sensitive
 data from the a web page to a server that the attacker owns. A direct XMLHttpRequest
-to do this would be prevented by the same-origin policy of the web browser but there
-is a simple workaround. The same-origin policy does not restrict the source of a
-script or image tag. Although you may use CSP to restrict sources, it becomes difficult
-to track what images sources to allow and so web developers tend to keep the CSP
-of \textit{img-src} as a wildcard (*) allowing all urls for images.
+to do this would be prevented by the same-origin policy of the web browser, but
+there is a simple workaround. The same-origin policy does not restrict the source
+of a script or image tag. Although you may use CSP (see Section~\ref{sec:CSP}) to
+restrict sources, it becomes difficult to track what image sources to allow and
+so web developers tend to keep the CSP of \textit{img-src} as a wildcard (*),
+allowing all urls for images.
 
-The Figure~\ref{fig:salaryMgr} shows a screenshot of a simple web page we created
+Figure~\ref{fig:salaryMgr} shows a screenshot of a simple web page we created
 that shows the salary of the user currently logged-in and salaries of his subordinates.
 The helpful greeting at the top right corner along with the nice background color
 is a due to a third-party library that Trudy suggested would be a nice addition
-to make the otherwise mundane user interface better. Turns out the third-party
+to make the otherwise mundane user interface better. It turns out the third-party
 library also does some malicious activity along with these ``colorful'' additions.
 Figure~\ref{fig:trudyLib} shows the code of the third party library. Here, lines
-14-15 would get the message that displays Manny's salary. Lines 17-20 extract manny's
+14-15 would get the message that displays Manny's salary. Lines 17-20 extract Manny's
 name and salary and line 21 would result in an attempt to asynchronously load an
-image with the name ``Manny\_10000.jpg'' from ``localhost:8081'' which is not the
-same as the origin of the web page as shown in the address bar in Figure~\ref{fig:salaryMgr}.
-This would happen anytime Manny clicks anywhere on the web page. Now, although there
-is no image with the name ``Manny\_10000.jpg'' at ``localhost:8081'', the attacker
-can access Manny's salary by checking their http access logs as shown in
-Figure~\ref{fig:accessLog}.
+image with the name ``Manny\_10000.jpg'' from ``localhost:8081''\footnote{Here,
+we are using a different port number to stand in for an alternate url such as
+``evil.com''} which is not the same as the origin of the web page as shown in the
+address bar in Figure~\ref{fig:salaryMgr}. This would happen anytime Manny clicks
+anywhere on the web page. Now, although there is no image with the name ``Manny\_10000.jpg''
+at ``localhost:8081'', the attacker can access Manny's salary by checking their
+http access logs, as shown in Figure~\ref{fig:accessLog}.
 
 \begin{figure}
   \centering
@@ -362,7 +366,8 @@ document.addEventListener("click", function () {
   var dollarPos = text.indexOf("$");
   var name = text.slice(3,commaPos);
   var salary = text.slice(dollarPos+1);
-  malImg.setAttribute("src","http://localhost:8081/" + name + "_" + salary + ".jpg");
+  var imgName = name + "_" + salary + ".jpg";
+  malImg.setAttribute("src","http://localhost:8081/" + imgName);
   //The following would violate the same origin policy:
   //$.post('http://localhost:8081/exfil.php',{message:text});
 });
@@ -381,43 +386,84 @@ document.addEventListener("click", function () {
 Now let's look at how policy-agnostic programming controls in the DOM would prevent
 such an attack. Figure~\ref{fig:displaySalary} shows a code snippet of the code
 that would display a message similar to the one shown in Figure~\ref{fig:salaryMgr}.
-Note, the string concatenation in the code would produce a faceted value of the
+Note, the string concatenation on line 4 would produce a faceted value of the
 form:\\
 \indent \texttt{<"n"?}
   \texttt{<"s"?"Manny's Salary is:10000":"Manny's Salary is:0">:}\\
-  \indent\indent\texttt{<"s"?"JonDoe's Salary is:10000":"Manny's Salary is:0">~>}
+  \indent\indent\texttt{<"s"?"JonDoe's Salary is:10000":"JonDoe's Salary is:0">~>}
 \noindent \eject
-So, with the correct policies in place, the message displayed on the web page would
-be ``Manny's Salary is:10000'' and the image request would be for ``JonDoe\_0.jpg''.
+Now, when the code from Figure~\ref{fig:trudyLib} is run, the concatenation on line
+21 would produce a faceted value of the form:\\
+\indent \texttt{<"n"?}
+\texttt{<"s"?"Manny\_10000.jpg":"Manny\_0.jpg">:}\\
+\indent\indent\texttt{<"s"?"JonDoe\_10000.jpg":"JonDoe\_0.jpg">~>}
+\noindent \\
+So, with the correct policies in place (see Section\ref{sec:ctxt}), the message
+displayed on the web page would be ``Manny's Salary is:10000'' and the image request
+would be for ``JonDoe\_0.jpg''.
 
 \begin{figure}
   \begin{lstlisting}
-//fName is a faceted value of the form <"n"?"Manny":"JonDoe">
-//fSalary is a faceted value of the form <"s"?"10000":"0">
-document.body.appendChild(document.createTextNode(fName + "'s Salary is:" + fSalary));
+var domPolicyEnv = window.policyEnv;
+var fName = domPolicyEnv.mkSensitive("n", "Manny", "JonDoe");
+var fSalary = domPolicyEnv.mkSensitive("s",10000, 0);
+document.body.appendChild(document.createTextNode(fName + "’s Salary is:" + fSalary));
   \end{lstlisting}
   \caption{Code that would set the display message on the web page}
   \label{fig:displaySalary}
 \end{figure}
 
-A sample policy function to protect salary data is shown in Figure~\ref{fig:policyEx}.
-Here we have three conditions that would determine if the salary of a user is safe
-to be revealed to the output context. We can certainly have more powerful policies
-which can be tailored to the target application.
+\section{The context object and defining policies \label{sec:ctxt}}
+In Section~\ref{sec:PAPModel} we briefly touched upon the definition of a context
+object and what it might look like in a health database application. Here, we define
+how a context object would look like for our case study above and how it would be used
+by policy functions. A context object contains all information that is relevant
+to define the ``context'' of the output channel and varies based on the output
+channel. For instance, the context object when an image resource request is made
+could be defined as:\\
+\indent\texttt{\{time: new Date(), elementType: "img"\}}
+
+\noindent When defining a policy for a sensitive value, the designer/developer needs to be
+aware of where it is expected to flow to. A good approach to creating a policy is
+identifying situations where we definitely don't want the data to leak to, then
+identify places where we expect the data to flow to and define conditions, and return
+false for any other situation. How you define a policy completely depends on your
+application and the data you are trying to protect. In our example, we don't expect
+salaries to be used in the image tag among other conditions so we need to define
+the policy accordingly. Figure~\ref{fig:policyEx} shows what that policy might
+look like. Here, we identify three conditions one which defines we don't want
+salary data to flow to the image or script tag, the second one specifies that any
+attempt to render or use salary data past 6:00 pm would not be allowed, the third
+specifies the only condition in which salary data is allowed to be rendered.
+Notice, in the third condition we are looking for an attribute that is not part
+of the context object we have specified above. When \texttt{createTextNode} is called
+the context object sent to the conretize function there would contain the time
+and URL attributes.
 
 \begin{figure}[H]
   \begin{lstlisting}
 function (ctxt) {
-  if (ctxt.urlDomain && ctxt.urlDomain != "myCorp.org") {
+  if (ctxt.elementType && ctxt.elementType == "img" || ctxt.elementType == "script") {
     return false;
-  } else if (ctxt.User && ctxt.User.role != "admin") {
+  } else if (ctxt.time && ctxt.time.getHours() > 18) {
     return false;
-  } else if (ctxt.time && ctxt.time.hour > 17) {
-    return false;
+  } else if (ctxt.URL && ctxt.URL == "mycorp.org/salaryManager.php") {
+    return true;
   }
-  return true;
+  return false;
 }
   \end{lstlisting}
-  \caption{Example of a policy function for protecting salary data from being exfiltrated}
+  \caption{Example of a policy function for the salary faceted value}
   \label{fig:policyEx}
 \end{figure}
+
+\section{Client-server interaction with policy-agnostic programming}
+Since we have seen the uses of policy-agnostic programming on both the server and
+client we should talk about how we imagine they would interact with each other.
+First thing to note is that policies on the server-side would not be relevant to
+the client-side and vice-versa. This is mostly due to the fact the output context
+in both cases will be different and the kind of information leaks they are trying
+to prevent will also be different.
+
+The \texttt{partialConcretize} function would be useful in such situations.
+\textbf{\textit{Work in progress...}}
