@@ -183,9 +183,8 @@ observers. In Jeeves, principals of faceted values have policies associated with
 them which are rules that the ``guard'' will check before providing access to the
 private facet. These policies need not be checked till the value needs to be revealed
 to an output channel. So, while faceted values are flowing through a program, there
-are special evaluation semantics defined that we discuss in section~\ref{sec:facetEval}.
-The following is an example of a faceted value that specifies a sensitive email
-address:
+are special semantics that define how they should be evaluated. The following is
+an example of a faceted value that specifies a sensitive email address:
 \[\langle k~?~\text{`jon@sjsu.edu'}~:~\text{`[redacted]'} \rangle\]
 When the policy associated with $k$ can be resolved to true, the value `jon@sjsu.edu'
 is visible and if the policy is resolved to false, then the value `[redacted]' is
@@ -322,12 +321,27 @@ care of information flow control and resolved the policy for sensitive data only
 when going out to the browser. But, once data is on the browser, the concept of
 facets is lost but we may want to further protect our data against exfiltration
 attacks. This is where our solution would help by persisting faceted values and
-policies associated with them on the client-side. We discuss more about our solution
-in Chapter~\ref{chap:solution} along with a demonstration of how it would help
-protect browser content.
+policies associated with them on the client-side.
 
 \section{Related Work}
-\textbf{\textit{This is a work in progress...}}
-\cite{DataExfilCSP} \cite{SelfExfil}
-\cite{SecuringWebContent}
-\cite{Faceted}
+Austin and Flanagan's~\cite{Faceted} original work showed the benefits of
+faceted values for dynamic information flow control by giving an example of how
+it could help reduce the power of an XSS attack. Rajani et al~\cite{eventDOMIFC}
+implement information flow controls for event handling and the DOM API which is
+based on work done by Bichhawat et al~\cite{webkitIFC} in which they build information
+flow controls into the WebKit Javascript engine. The drawback of both these approaches
+is that when an information flow control is violated, the execution is halted which
+may not be desirable for dynamic web pages.
+
+Koskela et al~\cite{SecuringWebContent} present an interesting approach to browser
+security by presenting an actor based approach where the various content providers
+(actors) that make up a web page are accountable for the content they send. They
+confine each actor within a \texttt{<div>} tag and based on their track record,
+the user/browser can decide how much restriction to enforce on a particular \texttt{<div>}
+node.
+
+Policy agnostic programming along with faceted values provides a very flexible
+approach (which is desirable on the client-side) to information flow control while
+still providing non-interference guarantees. We discuss more about our solution
+in Chapter~\ref{chap:solution} along with a demonstration of how it would help
+protect browser content.

@@ -222,6 +222,18 @@ note = {[Online]; accessed April, 2017}
   organization={Citeseer}
 }
 
+@artice{TOPLAS,
+author={Thomas H. Austin and Tommy Schmitz and Cormac Flanagan},
+year={2017},
+month={April},
+title={Multiple facets for dynamic information flow with exceptions},
+journal={ACM Trans. Program. Lang. Syst.},
+volume={39},
+number={3},
+doi={10.1145/3024086},
+note={Forthcoming}
+}
+
 @article{js10days,
 author={C. Severance},
 journal={Computer},
@@ -233,7 +245,8 @@ pages={7-8},
 keywords={Browsers;Computer languages;HTML;Java;Servers;Software engineering;Brendan Eich;HTML;JavaScript},
 doi={10.1109/MC.2012.57},
 ISSN={0018-9162},
-month={Feb},}
+month={Feb}
+}
 
 @book{flanagan2011javascript,
   title={JavaScript: The Definitive Guide: Activate Your Web Pages},
@@ -252,19 +265,39 @@ month={Feb},}
   note = {[Online]; accessed April, 2017}
 }
 
-@misc{CORS,
+@techreport{CORS,
   title={Cross-Origin Resource Sharing},
   author={Anne van Kesteren},
   year={2014},
-  howpublished={\url{https://www.w3.org/TR/cors/}},
-  note = {[Online]; accessed April, 2017}
+  howpublished={W3C Recommendation},
+  url={https://www.w3.org/TR/cors/},
+  institution = {W3C},
+  note={[Online]; accessed April, 2017}
+}
+
+@techreport{DOM,
+  title={Document Object Model Core},
+  author={Arnaud Le Hors, Philippe Le Hégaret},
+  year={2004},
+  howpublished={W3C Recommendation},
+  url={https://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html},
+  institution = {W3C},
+  note={[Online]; accessed April, 2017}
+}
+
+@misc{WeakMap,
+  title={WeakMap},
+  year={2017},
+  howpublished={MDN Docs},
+  url={https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap},
+  note={[Online]; accessed April, 2017}
 }
 
 @misc {csp,
   title={Content Security Policy (CSP)},
-  author={Mozilla Developer Network},
   year={2017},
-  howpublished={\url{https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP}},
+  howpublished={MDN Docs},
+  \url={https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP},
   note={[Online]; accessed April, 2017}
 }
 
@@ -325,4 +358,43 @@ note={accessed April, 2017}
  acmid = {1462485},
  publisher = {Springer-Verlag},
  address = {Berlin, Heidelberg},
+}
+
+@misc{ZaphodFacets,
+title={ZaphodFacets},
+author={Thomas Austin},
+howpublished={GitHub},
+url={https://github.com/taustin/ZaphodFacets},
+year={2011},
+note={accessed April, 2017}
+}
+
+@inproceedings{eventDOMIFC,
+author={V. Rajani and A. Bichhawat and D. Garg and C. Hammer},
+booktitle={2015 IEEE 28th Computer Security Foundations Symposium},
+title={Information Flow Control for Event Handling and the DOM in Web Browsers},
+year={2015},
+pages={366-379},
+keywords={Internet;Java;online front-ends;security of data;DOM;IFC;JavaScript;Web browsers;WebKit;browser engine;document object model;event handling;event handling mechanism;formal models;in-production browser engine;information flow control;lax security model;sensitive data leakage;Browsers;Context;Instruments;Lattices;Monitoring;Security;Standards},
+doi={10.1109/CSF.2015.32},
+ISSN={1063-6900},
+month={July}
+}
+
+@inbook{webkitIFC,
+author="Bichhawat, Abhishek
+and Rajani, Vineet
+and Garg, Deepak
+and Hammer, Christian",
+editor="Abadi, Mart{\'i}n
+and Kremer, Steve",
+title="Information Flow Control in WebKit's JavaScript Bytecode",
+bookTitle="Principles of Security and Trust: Third International Conference, POST 2014, Held as Part of the European Joint Conferences on Theory and Practice of Software, ETAPS 2014, Grenoble, France, April 5-13, 2014, Proceedings",
+year="2014",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="159--178",
+isbn="978-3-642-54792-8",
+doi="10.1007/978-3-642-54792-8_9",
+url="http://dx.doi.org/10.1007/978-3-642-54792-8_9"
 }

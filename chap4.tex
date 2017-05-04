@@ -1,18 +1,16 @@
 \chapter{Future Work and Conclusion}
-\textbf{\textit{This is a work in progress...}}
-\section{Future Work}
 We explored the use of policy-agnostic programming in the DOM. Another interesting
 area to explore on the client-side would be frameworks like Angular.js (angular).
 Since, angular is an MVC framework the policy-agnostic programming solution for it
 should be similar to what Yang et al~\cite{Jacqueline} have demonstrated with Jacqueline.
 
-\section{Conclusion}
 We saw how robust information flow controls can help prevent leaking of sensitive
-data and how it has seen a very slow adoption rate because of it is difficult
-for developers to write and maintain policy code. Policy-agnostic programming is
-a promising approach to implement information flow control in your system with
-very limited programmer burden.
+data and how it has seen very slow adoption because of the programmer burden to
+write and maintain policy code. Policy-agnostic programming is a promising approach
+to implement information flow controls in your system with very limited programmer
+burden.
 
-We explored how policy agnostic programming would help on the client-side and were
-successful in demonstrating how it helped prevent a known exfiltration attack to
-which most modern browsers are vulnerable.
+We explored how policy agnostic programming would look like on the client-side.
+Through our Javascript implementation in Narcissus and dom.js we were successful
+in demonstrating how it helped prevent a known exfiltration attack to which most
+modern browsers are vulnerable.
