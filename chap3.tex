@@ -90,7 +90,7 @@ FacetExecContext.prototype.evalIfBlock = function(cond,thenPart,elsePart) {
   \label{fig:appRules}
 \end{figure}
 
-\section{Implementing Jeeves}
+\section{Implementing Jeeves \label{sec:jeeves}}
 Once we had faceted values working, adding support for Jeeves constructs was pretty
 straightforward. All of the Jeeves constructs are encapsulated in the prototype
 of the \texttt{PolicyEnvironment} object which includes the [F-LABEL] and [F-RESTRICT]
@@ -211,7 +211,7 @@ function testPartialConcretize() {
   \label{fig:JeevesExamples}
 \end{figure}
 
-\section{Policy agnostic programming in dom.js}
+\section{Policy agnostic programming in dom.js \label{sec:dom.js}}
 Web browsers have an implementation of the DOM to allow scripts to
 access and manipulate content. We add faceted values and policy-agnostic programming
 constructs to the DOM implementation to show how it can be used to prevent
@@ -257,7 +257,7 @@ Section~\ref{sec:ctxt}. Additionally, we add the faceted value itself to the
 the \texttt{setAttribute} function of an element with one distinction to the object
 that is used as key for the \texttt{facetedValueMap}. Here we cannot use the node
 as the key since we need to have different keys for different attributes of an element.
-So we created an object using the id of the element and the attribute name as follows:
+So, we created an object using the id of the element and the attribute name as follows:
 \indent\texttt{facetedValueMap[\{id:this.id, attr:attributeName\}] = value;}
 \noindent
 
@@ -354,7 +354,6 @@ document.body.style.fontStyle.color = "black";
 //This section sets background color and greeting based on the time
 .
 .
-.
 var welcomeText = document.createTextNode(message);
 greetingNode.appendChild(welcomeText);
 //Malicious code:
@@ -391,7 +390,7 @@ form:\\
 \indent \texttt{<"n"?}
   \texttt{<"s"?"Manny's Salary is:10000":"Manny's Salary is:0">:}\\
   \indent\indent\texttt{<"s"?"JonDoe's Salary is:10000":"JonDoe's Salary is:0">~>}
-\noindent \eject
+\\\noindent
 Now, when the code from Figure~\ref{fig:trudyLib} is run, the concatenation on line
 21 would produce a faceted value of the form:\\
 \indent \texttt{<"n"?}
@@ -416,31 +415,35 @@ document.body.appendChild(document.createTextNode(fName + "’s Salary is:" + fS
 \section{The context object and defining policies \label{sec:ctxt}}
 In Section~\ref{sec:PAPModel} we briefly touched upon the definition of a context
 object and what it might look like in a health database application. Here, we define
-how a context object would look like for our case study above and how it would be used
-by policy functions. A context object contains all information that is relevant
-to define the ``context'' of the output channel and varies based on the output
-channel. For instance, the context object when an image resource request is made
-could be defined as:\\
+what a context object would look like for our case study above and how it would
+be used by policy functions. A context object contains all information that is
+relevant to define the ``context'' of the output channel and varies based on the
+output channel. For instance, the context object when an image load request is made
+by the browser could be defined as:\\
 \indent\texttt{\{time: new Date(), elementType: "img"\}}
 
-\noindent When defining a policy for a sensitive value, the designer/developer needs to be
-aware of where it is expected to flow to. A good approach to creating a policy is
-identifying situations where we definitely don't want the data to leak to, then
-identify places where we expect the data to flow to and define conditions, and return
-false for any other situation. How you define a policy completely depends on your
-application and the data you are trying to protect. In our example, we don't expect
-salaries to be used in the image tag among other conditions so we need to define
-the policy accordingly. Figure~\ref{fig:policyEx} shows what that policy might
-look like. Here, we identify three conditions one which defines we don't want
-salary data to flow to the image or script tag, the second one specifies that any
-attempt to render or use salary data past 6:00 pm would not be allowed, the third
+\noindent When defining a policy for a sensitive value, the designer/developer needs
+to be aware of where it is expected to flow to. A good approach to creating a policy
+is identifying the two kinds of output channels: one where we expect our data to
+flow to, and the other where we definitely don't want the data to leak to. For
+the channels where we expect the data to flow to, we identify conditions under
+which we would allow the private facet to be sent out. For all other cases, we
+allow only the public facet to be seen. How you define a policy completely depends
+on your application and the data you are trying to protect. In our example, we don't
+expect salaries to be used in the image tag among other conditions so we need to
+define the policy accordingly. Figure~\ref{fig:policyEx} shows what that policy
+might look like. Here, we specify three conditions: one which defines we don't want
+salary data to flow to the image or script tag; the second one specifies that any
+attempt to render or use salary data past 6:00 pm would not be allowed; the third
 specifies the only condition in which salary data is allowed to be rendered.
 Notice, in the third condition we are looking for an attribute that is not part
-of the context object we have specified above. When \texttt{createTextNode} is called
-the context object sent to the conretize function there would contain the time
-and URL attributes.
+of the context object we have specified above. When \texttt{createTextNode} is
+called the context object would look like the following:\\
+\indent\texttt{\{time: new Date(), URL:mycorp.org/salaryManager.php\}}\\
+\noindent With this context, assuming time is less than 6:00 pm, and the policy
+in Figure~\ref{fig:policyEx}, the private facet will be rendered to the Text node.
 
-\begin{figure}[H]
+\begin{figure}
   \begin{lstlisting}
 function (ctxt) {
   if (ctxt.elementType && ctxt.elementType == "img" || ctxt.elementType == "script") {
@@ -458,12 +461,27 @@ function (ctxt) {
 \end{figure}
 
 \section{Client-server interaction with policy-agnostic programming}
-Since we have seen the uses of policy-agnostic programming on both the server and
-client we should talk about how we imagine they would interact with each other.
-First thing to note is that policies on the server-side would not be relevant to
-the client-side and vice-versa. This is mostly due to the fact the output context
-in both cases will be different and the kind of information leaks they are trying
-to prevent will also be different.
-
-The \texttt{partialConcretize} function would be useful in such situations.
-\textbf{\textit{Work in progress...}}
+Since we have seen the uses of policy-agnostic programming on both the server
+(see Section~\ref{sec:Jacqueline}) and client-side (see Section~\ref{sec:dom.js})
+we should talk about how we imagine they would interact with each other. First
+thing to note is that policies on the server-side would not be relevant to the
+client-side and vice-versa. This is mostly due to the fact the output context in
+both cases will be different and the kind of information leaks they are trying to
+prevent will also be different. To visualize this notion, we present an example
+that demonstrates the interaction of faceted values between the server and client-side.
+Suppose, the server of an application stores location information of a user as a
+faceted value of the form:\\
+\indent \texttt{<"serverlabel"?\\
+\indent<"clientlabel"?"Psychiatric center, 4th St.":"Bermuda triangle">:\\
+\indent<"clientlabel"?"Doctor's office":"Bermuda triangle">}\\
+\noindent
+Note, the policy function for ``serverlabel'' would be in the
+\texttt{policyEnvironment} of the server, while the policy function for the
+``clientlabel'' would be in the \texttt{policyEnvironment} of the client. When
+the location data is to be sent to a client, the context object here would be the
+currently logged in user and the policy function could be defined such that only
+the Doctor of the user is able to access the private facet while other users would
+get access to the public facet. Here, the \texttt{partialConcretize} function from
+Section~\ref{sec:jeeves} would be useful since we don't want to concretize to a raw
+value. We will have different policies on the client side that define what facet
+is rendered on the browser.

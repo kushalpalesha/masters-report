@@ -62,7 +62,9 @@ relaxed form of noninterference is \textit{termination-insensitive noninterferen
 which still maintains the property of private inputs not influencing public outputs
 on program execution although private information can influence the termination of
 the program. Although the termination of a program is a publicly observable fact,
-this reduces the attacker to a brute force approach~\cite{TINI}.
+Askarov et al.~\cite{TINI} show that an attacker would be reduced to using a brute
+force approach which would take more than polynomial time in the size of the
+sensitive data to exfiltrate.
 
 \subsubsection{Confidentiality and integrity}
 Information flow security is used to ensure \textit{confidentiality} and \textit{integrity}
@@ -93,12 +95,24 @@ at the receiving end, there is no way to control the flow of data from that poin
 onwards. A similar argument can be made for firewalls.
 
 Yang~\cite{comey} in her blog post talks about a very popular privacy leak in recent
-times. She explains how the leak was the result of a vulnerability that existed in
-Instagram. While Instagram does protect the identity of users who wish to remain
-private, it does not prevent their recommendation algorithms access to the same
-data. The result of computations done by these algorithms is not protected which
-is what led to the leak in this particular case. \remember to expand
-
+times that involved FBI director James Comey's ``secret'' Twitter account being
+discovered by Feinberg~\cite{gizmodo}. The leak was the result of an information
+flow vulnerability that exists in Instagram. Feinberg found the private account
+of James Comey's son Brian Comey. Ideally, a private account's ``following'' list
+should not be available to an external observer which is the case in a normal flow.
+But, when Feinberg requested to follow Brian's account, Instagram's ``helpful''
+recommendation algorithm presented a list of suggested accounts to follow. All
+of them included the other Comey family members except for one account with an
+unusual name (``reinholdniebuhr''). With some online research, Feinberg was able
+to figure out that James Comey had written a thesis on ``Reinhold Niebuhr'' in law
+school. She found a Twitter account with the same name and verified that it was
+in fact his account due to a public statement he made specifying the number of
+people his ``secret'' Twitter account was following. While Instagram does protect
+the identity of users who wish to remain private, it does not prevent how their
+recommendation algorithms make use of this private data. The result of computations
+done by these algorithms is not protected which is what led to the leak in this
+particular case. Note: While Instagram was not directly responsible for this leak,
+Feinberg did exploit this undetected implicit flow that resulted in her findings.
 
 \subsection{Language based information flow security \label{subsec:langinfo}}
 There have been several approaches that researchers have tried to deal with the
@@ -235,12 +249,12 @@ expression would look like in Javascript and it also helps helps us understand
 how faceted evaluation would prevent a potential implicit flow. Since the control
 flow is being influenced by a faceted value, the behavior of the program under both
 facets is evaluated. So, for observers that are allowed to view values with principal
-$h$, \texttt{val > 0} would evaluate to true and \texttt{v1} would be equal to 24.
-On the other hand, for the public observers, \texttt{val > 0} would evaluate to
-false and \texttt{v1} is not assigned any value. The final return value would then
-become \texttt{<h?24:undefined>}. Note, if we there was an initial assignment to
-\texttt{v1}, then that would be the public facet of the return value instead of
-\textit{undefined}.
+$h$, \texttt{val > 0} would evaluate to true and \texttt{v1} would be equal to
+\texttt{false}. On the other hand, for the public observers, \texttt{val > 0} would
+evaluate to false and \texttt{v1} is not assigned any value. The final return value
+would then become \texttt{<h?false:undefined>}. Note, if we there was an initial
+assignment to \texttt{v1}, then that would be the public facet of the return value
+instead of \textit{undefined}.
 
 \begin{figure}
 	\centering
@@ -254,7 +268,7 @@ become \texttt{<h?24:undefined>}. Note, if we there was an initial assignment to
 function f(val) {
   var v1;
   if (val > 0) {
-    v1 = val - 1;
+    v1 = false;
   }
   return v1;
 }
@@ -272,7 +286,7 @@ the termination-insensitive noninterference (the projection property helps to pr
 this), and termination-insensitive policy compliance which states that data is revealed
 to an external observer only if it is allowed by the policy specified in the program.
 
-\subsection{The Jacqueline Framework}
+\subsection{The Jacqueline Framework \label{sec:Jacqueline}}
 Yang et al~\cite{Jacqueline} demonstrate the practical feasibility of the policy
 agnostic programming paradigm for database-backed server-side applications.
 They introduce Jacqueline, an MVC framework with an aim to provide a platform to
