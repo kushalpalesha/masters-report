@@ -9,7 +9,7 @@ for Javascript.
 \section{Implementing faceted values in Narcissus}
 The implementation of faceted values is integral to implementing Jeeves. Our implementation
 of faceted values derives heavily from the work done by Austin and Flanagan~\cite{Faceted}
-and is inspired from the concept presented by Kerchove et al~\cite{Modular} for
+and is inspired from the concept presented by Kerchove et al.~\cite{Modular} for
 ``modular instrumentation'' of interpreters. They talk about how many dynamic analysis
 approaches for information flow security have prototypes that are implemented in
 very specific ways making it difficult to compare and reuse. They derive some
@@ -220,7 +220,7 @@ sensitive data from leaking.
 We use dom.js~\cite{dom.js}, which is a DOM implementation written in Javascript.
 This makes it possible for us to parse it using Narcissus and make DOM components
 available to scripts just like a web browser would. The advantages of using dom.js
-is highlighted by Austin et al~\cite[Section 9.3]{TOPLAS} since it makes it possible
+is highlighted by Austin et al.~\cite[Section 9.3]{TOPLAS} since it makes it possible
 to include faceted values in the DOM and track flow of private information on the
 web browser.
 

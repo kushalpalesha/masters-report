@@ -22,7 +22,7 @@ PAP paradigm aims to make the implementation of information flow controls in com
 real world systems flexible and intuitive. Yang et al.~\cite{Jacqueline} presented
 how PAP can be used to protect data on a database backed server. They introduced
 an MVC framework called Jacqueline, which extends the Django framework~\cite{django}
-with Jeeves for policy-agnostic evaluation. Similarly we will extend Javascript
+with Jeeves for policy-agnostic evaluation. Similarly, we will extend Javascript
 to support PAP and demonstrate how it can help prevent sensitive data leaks on the
 browser.
 
@@ -116,7 +116,7 @@ foolproof solutions as presented by several researchers:
   This form of attack would be prevented by the same origin policy. The authors present
   \textit{self-exfiltration} as a new ``class'' of the data-exfiltration attack. In
   this form of attack, the injected script does not directly send the extracted data
-  to an attacker-controlled server; instead it is posted to the another location
+  to an attacker-controlled server; instead it is posted to another location
   of the victim website itself or to whitelisted origins. The attacker can later
   log-on/access the victim website or whitelisted site respectively to retrieve the
   information.
@@ -130,7 +130,7 @@ The researchers above reveal flaws in existing browser security mechanisms and s
 possible improvements to fix them. As mentioned at the beginning of this chapter,
 all browsers are not created equal and so maybe a couple of browser vendors may
 implement one of the suggested solutions. But this would mean the vulnerability
-would still exist in the rest of the browsers until the said solution becomes a
+would still exist in the rest of the browsers until said solution becomes a
 standard and all the vendors adopt it. Moreover, these are just some examples of
 the many loopholes that researchers (and unfortunately attackers) have been finding
 in the current browser security architecture.
